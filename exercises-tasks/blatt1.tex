@@ -1,0 +1,195 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{fancyhdr}
+\usepackage{fancyheadings}
+\usepackage[ngerman,german]{babel}
+\usepackage[utf8]{inputenc}
+%\usepackage[latin1]{inputenc}
+\usepackage[active]{srcltx}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{listings}
+\usepackage{struktex}
+\usepackage{hyperref}
+\usepackage{plantuml}
+\usepackage{csquotes}
+
+\definecolor{commentgreen}{RGB}{2,112,10}
+\definecolor{eminence}{RGB}{108,48,130}
+\definecolor{weborange}{RGB}{255,165,0}
+\definecolor{frenchplum}{RGB}{129,20,83}
+\usepackage{textcomp}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%% EDIT THIS PART %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\Fach}{Anwendungen der Robotik}
+\newcommand{\Name}{Mark Geiger}
+\newcommand{\Seminargruppe}{TINF23IT1}
+\newcommand{\Matrikelnummer}{}
+\newcommand{\Semester}{2025}
+\newcommand{\Uebungsblatt}{1} %  <-- UPDATE ME
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setlength{\parindent}{0em}
+\topmargin -1.0cm
+\oddsidemargin 0cm
+\evensidemargin 0cm
+\setlength{\textheight}{9.2in}
+\setlength{\textwidth}{6.0in}
+
+%%%%%%%%%%%%%%%
+%% Aufgaben-COMMAND
+\newcommand{\Aufgabe}[1]{
+  {
+  \vspace*{0.5cm}
+  \textsf{\textbf{Aufgabe #1}}
+  \vspace*{0.2cm}
+  
+  }
+}
+%%%%%%%%%%%%%%
+\hypersetup{
+    pdftitle={\Fach{}: Übungsblatt \Uebungsblatt{}},
+    pdfauthor={\Name},
+    pdfborder={0 0 0},
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+}
+
+\lstset{
+    language=C++,
+    frame=tb,
+    tabsize=4,
+    numbers=left,
+    numbersep=3pt, 
+    %upquote=true,
+    breaklines=true,
+    commentstyle=\color{commentgreen},
+    keywordstyle=\color{eminence},
+    stringstyle=\color{red},
+    basicstyle=\color{black}\small\ttfamily, % basic font setting
+    emph={int,char,double,float,unsigned,void,bool},
+    emphstyle={\color{blue}},
+    % keyword highlighting
+    otherkeywords={>,<,.,;,-,!,=,~},
+    morekeywords={>,<,.,;,-,!,=,~},
+    keywordstyle=\color{blue},
+}
+
+\title{Übungsblatt \Uebungsblatt{}}
+\author{\Name{}}
+
+\begin{document}
+\thispagestyle{fancy}
+\lhead{\sf \large \Fach{} \\ \small \Name{} \Matrikelnummer{}}
+\rhead{\sf \Semester{} \\  Seminargruppe \Seminargruppe{}}
+\vspace*{0.2cm}
+\begin{center}
+\LARGE \sf \textbf{Übungsblatt \Uebungsblatt{}}
+\end{center}
+\vspace*{0.2cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Insert your solutions here %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\Aufgabe{1}
+
+In dieser Übung möchten wir uns mit den Grundlagen von ROS befassen und unseren ersten kleinen Rosknoten entwickeln. Ihr solltet aktuellt eine bereits funktionsfähige ROS-Umgebung installiert haben. Entweder nativ, in einer VM oder über Docker.
+
+
+\begin{enumerate}[a)]
+\item{Zunächst stellen wir sicher, dass wir einen richtigen ros kontext geladen habe. Ruft das programm \lstinline{"ros2"} auf. Falls ihr dort eine Fehlermeldung bekommt, dann habt ihr die ros2 Umgebung noch nicht geladen, das geht via \lstinline{"source /opt/ros/jazzy/setup.bash"}.}
+\item{als nächstes möchten wir einen ros workspace erzeugen. Ein ros workspace (colcon workspake) ist letztlich nur eine Ordnerstruktur die einem bestimmten muster folgt. Dafür erzeugen wir zunächst ein neues Verzeichnis. Wir nennen es "blatt1\_ws", dafur nutzt \lstinline{"mkdir blatt1_ws"} in einem für euch geeigneten Pfad. Danach navigieren wir in den Ordner, \lstinline{"cd blatt1\_ws"} und erzeugen einen Unterordner src, \lstinline{"mkdir src"}.}
+\item{Als nächstes möchten wir ein eigenes packages erzeugen. Dafür wechseln wir in den ordner src, \lstinline{"cd src"} und führen dann folgenden Befehl aus: \lstinline{"ros2 pkg create my_cpp_pkg --build-type ament_cmake --dependencies rclcpp"}. Dies erzeugt ein ros package mit dem namen my\_cpp\_pkg als CMake Projekt mit einer Abhängigkeit zu rclcpp, die wir benötigen, wenn wir aus C++ heraus auf ros bibliotheken zugreifen möchten. Nun wurde ein Ordner namens my\_cpp\_pkg erstellt mit folgendem Inhalt: \lstinline{"CMakeLists.txt  include  package.xml  src"}}
+\item{Nun gehen wir zurück zum workspace root und können \lstinline{"colcon build"} ausführen. In den Ausgaben können wir sehen, dass unser package bereits gefunden und automatisch gebaut wird. Allerdings gibt es aktuell noch nicht sonderlich viel Inhalt. Zeit das zu ändern!}
+\item{Wir legen eine Datei an und editieren diese: \lstinline{"src/my_cpp_pkg/src/my_first_node.cpp"}. Wir geben ihr folgenden Inhalt (Tipp, neben diesem PDF liegt auch die Latex-Quelldatei, aus dieser Datei lässt es sich einfacher Inhalte kopieren!):
+
+\begin{lstlisting}[language=C++,basicstyle=\fontsize{6.5}{8}\selectfont]
+#include "rclcpp/rclcpp.hpp"
+class MyCustomNode : public rclcpp::Node
+{
+  public:
+    MyCustomNode() : Node("my_node_name"), counter_(0)
+    {
+      timer_ = this->create_wall_timer(std::chrono::seconds(1),
+      std::bind(&MyCustomNode::print_hello, this));
+    }
+
+    void print_hello()
+    {
+      RCLCPP_INFO(this->get_logger(), "Hello %d", counter_);
+      counter_++;
+    }
+
+  private:
+    int counter_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char **argv)
+{
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<MyCustomNode>();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
+  return 0;
+}
+\end{lstlisting}
+}
+\item{Zudem müssen wir die CMakeLists.txt in unserem package anpassen. Der Inhalt der Datei sollte wie folgt aussehen.
+\begin{lstlisting}[language=C++,basicstyle=\fontsize{6.5}{8}\selectfont]
+cmake_minimum_required(VERSION 3.8)
+project(my_cpp_pkg)
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+
+add_executable(test_node src/my_first_node.cpp)
+ament_target_dependencies(test_node rclcpp)
+
+install(TARGETS
+  test_node
+  DESTINATION lib/${PROJECT_NAME}/
+)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()
+\end{lstlisting}
+Hinzugefügt haben wir den aufruf zu add\_executable und ament\_target\_dependencies und die install Anweisung.}
+\item{Danach bauen wir wieder aus unserem root verzeichnis mit colcon build. Danach aktivieren wir unsere eigene ros Umgebung die auch unser package enthält, \lstinline{"source ./install/setup.bash"}.}
+\item{Jetzt können wir unseren code ausführen. \lstinline{"ros2 run my_cpp_pkg test_node"}.}
+\item{Wir sollten nun die Ausgaben von unserem Code sehen. Zusätzlich können wir unseren laufenen node mitels \lstinline{"ros2 node info / ros2 node list"} insipzieren.}
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+
