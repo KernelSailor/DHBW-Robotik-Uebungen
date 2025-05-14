@@ -7,6 +7,18 @@ This Repository is part of an lecture from Mark Geiger which can be found in his
 source /opt/ros/jazzy/setup.bash
 ```
 
+in your project run
+```bash
+colcon build
+```
+```bash
+chmod +x install/setup.bash
+./install/setup.bash
+
+```
+
+
+
 ## test / start rviz:
 ```bash
 ros2 run rviz2 rviz2
