@@ -23,4 +23,14 @@
     </node>
 
     <node pkg="rviz2" exec="rviz2" args="-d $(var rviz_config_path)" />
+
+    <node
+    name="velocity_publisher"
+    pkg="my_robot_controller"
+    exec="velocity_publisher"
+    output="screen" />
+
+
+
+
 </launch>
