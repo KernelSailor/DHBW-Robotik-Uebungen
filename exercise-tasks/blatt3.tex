@@ -1,0 +1,203 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{fancyhdr}
+\usepackage{fancyheadings}
+\usepackage[ngerman,german]{babel}
+\usepackage[utf8]{inputenc}
+%\usepackage[latin1]{inputenc}
+\usepackage[active]{srcltx}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{listings}
+\usepackage{struktex}
+\usepackage{hyperref}
+\usepackage{plantuml}
+\usepackage{csquotes}
+
+\definecolor{commentgreen}{RGB}{2,112,10}
+\definecolor{eminence}{RGB}{108,48,130}
+\definecolor{weborange}{RGB}{255,165,0}
+\definecolor{frenchplum}{RGB}{129,20,83}
+\usepackage{textcomp}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%% EDIT THIS PART %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\Fach}{Anwendungen der Robotik}
+\newcommand{\Name}{Mark Geiger}
+\newcommand{\Seminargruppe}{TINF23IT1}
+\newcommand{\Matrikelnummer}{}
+\newcommand{\Semester}{2025}
+\newcommand{\Uebungsblatt}{3} %  <-- UPDATE ME
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setlength{\parindent}{0em}
+\topmargin -1.0cm
+\oddsidemargin 0cm
+\evensidemargin 0cm
+\setlength{\textheight}{9.2in}
+\setlength{\textwidth}{6.0in}
+
+%%%%%%%%%%%%%%%
+%% Aufgaben-COMMAND
+\newcommand{\Aufgabe}[1]{
+  {
+  \vspace*{0.5cm}
+  \textsf{\textbf{Aufgabe #1}}
+  \vspace*{0.2cm}
+  
+  }
+}
+%%%%%%%%%%%%%%
+\hypersetup{
+    pdftitle={\Fach{}: Übungsblatt \Uebungsblatt{}},
+    pdfauthor={\Name},
+    pdfborder={0 0 0},
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+}
+
+\lstset{
+    language=C++,
+    frame=tb,
+    tabsize=4,
+    numbers=left,
+    numbersep=3pt, 
+    %upquote=true,
+    breaklines=true,
+    commentstyle=\color{commentgreen},
+    keywordstyle=\color{eminence},
+    stringstyle=\color{red},
+    basicstyle=\color{black}\small\ttfamily, % basic font setting
+    emph={int,char,double,float,unsigned,void,bool},
+    emphstyle={\color{blue}},
+    % keyword highlighting
+    otherkeywords={>,<,.,;,-,!,=,~},
+    morekeywords={>,<,.,;,-,!,=,~},
+    keywordstyle=\color{blue},
+}
+
+\title{Übungsblatt \Uebungsblatt{}}
+\author{\Name{}}
+
+\begin{document}
+\thispagestyle{fancy}
+\lhead{\sf \large \Fach{} \\ \small \Name{} \Matrikelnummer{}}
+\rhead{\sf \Semester{} \\  Seminargruppe \Seminargruppe{}}
+\vspace*{0.2cm}
+\begin{center}
+\LARGE \sf \textbf{Übungsblatt \Uebungsblatt{}}
+\end{center}
+\vspace*{0.2cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Insert your solutions here %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\Aufgabe{1}
+
+In dieser Übung schreiben wir einen simplen ROS Node der Nachrichten an eine topic sendet. Als basis nutzen wir den Quellcode im Verzeichnis ./code neben dieser Übung. Das Grundgerust hier baut aur der vergangenen Übung 2 auf.
+
+\begin{enumerate}[a)]
+\item{
+Zunächst erzeugen wir einen neues ROS package, dafür gehen wir ins Verzeichnis ./code/src und führen dann folgenden Befehl aus:
+\begin{lstlisting}[language=C++,basicstyle=\fontsize{6.5}{8}\selectfont]
+ros2 pkg create --build-type ament_cmake my_robot_controller --dependencies rclcpp geometry_msgs
+\end{lstlisting}
+}
+Dies erzeugt ein ROS Package in der die package.xml mit ein paar Abhängigkeiten vorausgefüllt ist, namentlich rclcpp, geometry\_msgs und ament\_cmake
+\item{
+Danach erzeugen wir die Datei src/my\_robot\_controller/src/velocity\_publisher.cpp und füllen Sie mit folgendem Inhalt:
+\begin{lstlisting}[language=C++,basicstyle=\fontsize{6.5}{8}\selectfont]
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+
+class VelocityPublisher : public rclcpp::Node
+{
+public:
+    VelocityPublisher() : Node("velocity_publisher")
+    {
+        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+        timer_ = this->create_wall_timer(
+            std::chrono::milliseconds(500),
+            std::bind(&VelocityPublisher::publish_velocity, this));
+    }
+
+private:
+    void publish_velocity()
+    {
+        auto msg = geometry_msgs::msg::Twist();
+        msg.linear.x = 0.5;
+        msg.angular.z = 0.2;
+        RCLCPP_INFO(this->get_logger(), "Publishing: linear.x = %f, angular.z = %f", msg.linear.x, msg.angular.z);
+        publisher_->publish(msg);
+    }
+
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char *argv[])
+{
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<VelocityPublisher>());
+    rclcpp::shutdown();
+    return 0;
+}
+\end{lstlisting}
+Dieser code startet einen Ros node mit dem Namen velocity\_publisher und er sendet alle 500ms eine Nachricht an die /cmd\_vel topic. Dies steuert die simulierten Motoren von unserem Roboter an.
+}
+\item{
+Danach fügen wir die neue Datei in die CMakeLists.txt von unserem Knoten hinzu. Dafür passen wir die Datei an (src/my\_robot\_controller/CMakeLists.txt)
+\begin{lstlisting}[language=C++,basicstyle=\fontsize{6.5}{8}\selectfont]
+cmake_minimum_required(VERSION 3.5)
+project(my_robot_controller)
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+add_executable(velocity_publisher src/velocity_publisher.cpp)
+ament_target_dependencies(velocity_publisher rclcpp geometry_msgs)
+
+install(TARGETS
+  velocity_publisher
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+ament_package()
+\end{lstlisting}
+}
+\item{
+Jetzt erweitern wir noch unsere launch Datei, damit auch unser neu geschriebener Knoten gestartet wird! Ergänzen in der Datei src/my\_robot\_bringup/launch/my\_robot.launch.xml folgendes:
+\begin{lstlisting}[language=C++,basicstyle=\fontsize{6.5}{8}\selectfont]
+<launch>
+  <node
+    name="velocity_publisher"
+    pkg="my_robot_controller"
+    exec="velocity_publisher"
+    output="screen" />
+</launch>
+\end{lstlisting}
+}
+\item{Dann musst du einmal neu kompilieren und die erzeugte setup.bash sourcen. Du solltest inzwischen wissen wie das geht!}
+\item{Jetzt können wir unsere launch datei starten:
+\begin{lstlisting}[language=C++,basicstyle=\fontsize{6.5}{8}\selectfont]
+ros2 launch my_robot_bringup my_robot.launch.xml
+\end{lstlisting}
+}
+\item{Wir sehen nun unseren altbekannten Roboter der automatisch eine Kreisbahn abfährt. Experimentiere ein bisschen mit dem code des Knoten um andere Bewegungen zu realisieren!}
+\end{enumerate}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+
